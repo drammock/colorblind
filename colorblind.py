@@ -13,7 +13,7 @@ https://personal.sron.nl/~pault/colourschemes.pdf
 """
 # @author: drmccloy
 # Created on Thu Sep  1 17:07:57 2016
-# License: BSD (3-clause)
+# License: MIT License
 
 
 def sequential_colormap(x):
