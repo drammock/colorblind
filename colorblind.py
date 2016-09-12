@@ -56,14 +56,24 @@ def rainbow_colormap(x):
     return array([red, grn, blu]).T
 
 
-def qualitative_colors(n):
+def new_qualitative_colors(n, missing=False):
+    if n < 1:
+        raise ValueError('Minimum number of qualitative colors is 1.')
+    elif n > 6:
+        raise ValueError('Maximum number of qualitative colors is 6.')
+    cols = ['#4477AA', '#EE6677', '#228833', '#CCBB44', '#66CCEE', '#AA3377',
+            '#BBBBBB']  # last color is for missing data
+    return cols[:n] if not missing else cols[:n] + cols[-1]
+
+
+def qualitative_colors(n, missing=False):
     if n < 1:
         raise ValueError('Minimum number of qualitative colors is 1.')
     elif n > 12:
         raise ValueError('Maximum number of qualitative colors is 12.')
     cols = ['#4477AA', '#332288', '#6699CC', '#88CCEE', '#44AA99', '#117733',
             '#999933', '#DDCC77', '#661100', '#CC6677', '#AA4466', '#882255',
-            '#AA4499']
+            '#AA4499', '#DDDDDD']  # last color is for missing data
     indices = [[0],
                [0, 9],
                [0, 7, 9],
@@ -76,6 +86,7 @@ def qualitative_colors(n):
                [1, 3, 4, 5, 6, 7, 8, 9, 11, 12],
                [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12],
                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]
+    indices = [ix + [-1] for ix in indices] if missing else indices
     return [cols[ix] for ix in indices[n - 1]]
 
 
@@ -88,7 +99,7 @@ def graysafe_colors(n):
     return [cols[ix] for ix in range(n)]
 
 
-def sequential_colors(n):
+def sequential_colors(n, missing=False):
     if n < 3:
         raise ValueError('Minimum number of sequential colors is 3.')
     elif n > 9:
@@ -103,10 +114,11 @@ def sequential_colors(n):
                [1, 3, 5, 6, 7, 9, 10],
                [0, 2, 3, 5, 6, 7, 9, 10],
                [0, 2, 3, 5, 6, 7, 9, 10, 12]]
+    indices = [ix + [-1] for ix in indices] if missing else indices
     return [cols[ix] for ix in indices[n - 3]]
 
 
-def diverging_colors(n):
+def diverging_colors(n, missing=False):
     if n < 3:
         raise ValueError('Minimum number of diverging colors is 3.')
     elif n > 11:
@@ -123,32 +135,34 @@ def diverging_colors(n):
                [1, 3, 5, 6, 7, 8, 9, 11, 13],
                [0, 1, 3, 5, 6, 8, 9, 11, 13, 14],
                [0, 1, 3, 5, 6, 7, 8, 9, 11, 13, 14]]
-    return [cols[ix] for ix in indices[n - 3]]
+    result = [cols[ix] for ix in indices[n - 3]]
+    return result if not missing else result + ['#888888']
 
 
-def rainbow_colors(n):
+def rainbow_colors(n, missing=False):
     if n < 4:
         raise ValueError('Minimum number of rainbow colors is 4.')
     elif n > 12:
         raise ValueError('Maximum number of rainbow colors is 12.')
     c = ['#781C81', '#404096', '#57A3AD', '#529DB7', '#63AD99', '#6DB388',
-         '#E39C37', '#D92120']
-    cols = [[c[1], c[2], '#DEA73A', c[7]],
-            [c[1], c[3], '#7DB874', c[6], c[7]],
-            [c[1], '#498CC2', c[4], '#BEBC48', '#E68B33', c[7]],
-            [c[0], '#3F60AE', '#539EB6', c[5], '#CAB843', '#E78532', c[7]],
+         '#E39C37', '#D92120', '#FFFFFF']
+    cols = [[c[1], c[2], '#DEA73A', c[7], c[8]],
+            [c[1], c[3], '#7DB874', c[6], c[7], c[8]],
+            [c[1], '#498CC2', c[4], '#BEBC48', '#E68B33', c[7], c[8]],
+            [c[0], '#3F60AE', '#539EB6', c[5], '#CAB843', '#E78532', c[7],
+             c[8]],
             [c[0], '#3F56A7', '#4B91C0', '#5FAA9F', '#91BD61', '#D8AF3D',
-             '#E77C30', c[7]],
+             '#E77C30', c[7], c[8]],
             [c[0], '#3F4EA1', '#4683C1', c[2], c[5], '#B1BE4E', '#DFA53A',
-             '#E7742F', c[7]],
+             '#E7742F', c[7], c[8]],
             [c[0], '#3F479B', '#4277BD', c[3], '#62AC9B', '#86BB6A', '#C7B944',
-             c[6], '#E76D2E', c[7]],
+             c[6], '#E76D2E', c[7], c[8]],
             [c[0], c[1], '#416CB7', '#4D95BE', '#5BA7A7', '#6EB387', '#A1BE56',
-             '#D3B33F', '#E59435', '#E6682D', c[7]],
+             '#D3B33F', '#E59435', '#E6682D', c[7], c[8]],
             [c[0], '#413B93', '#4065B1', '#488BC2', '#55A1B1', c[4], '#7FB972',
-             '#B5BD4C', '#D9AD3C', '#E68E34', '#E6642C', c[7]]
+             '#B5BD4C', '#D9AD3C', '#E68E34', '#E6642C', c[7], c[8]]
             ]
-    return cols[n - 4]
+    return cols[n - 4] if missing else cols[n - 4][:-1]
 
 
 def banded_rainbow_colors(n):
@@ -182,18 +196,20 @@ def test_colormaps():
     from matplotlib.cm import register_cmap
     plt.ioff()
     funcs = [rainbow_colors, sequential_colors, diverging_colors,
-             qualitative_colors]
-    cmaps = [rainbow_colormap, sequential_colormap, diverging_colormap, None]
-    titles = ['(banded) rainbow', 'sequential', 'diverging', 'qualitative']
-    offsets = [4, 3, 3, 1]
-    nums = [9, 7, 9, 12]
+             qualitative_colors, new_qualitative_colors]
+    cmaps = [rainbow_colormap, sequential_colormap, diverging_colormap, None,
+             None]
+    titles = ['(banded) rainbow', 'sequential', 'diverging', 'qualitative',
+              'new qualitative']
+    offsets = [4, 3, 3, 1, 1]
+    nums = [9, 7, 9, 12, 6]
     band_dict = {4: 14, 5: 15, 6: 18, 7: 21}
     subplot_dims = (7, len(funcs))
-    fig, axs = plt.subplots(*subplot_dims, figsize=(14, 7))
-    kwargs = dict(marker='s', s=70)
+    fig, axs = plt.subplots(*subplot_dims, figsize=(17, 7))
+    kwargs = dict(marker='s', s=70, edgecolor='')
     for ix, (func, offset, num, cmap, title
              ) in enumerate(zip(funcs, offsets, nums, cmaps, titles)):
-        ax = plt.subplot2grid(subplot_dims, (0, ix), fig=fig,
+        ax = plt.subplot2grid(subplot_dims, (0, ix),
                               rowspan=subplot_dims[0] - 2)
         ticks = []
         for n in range(num):
@@ -213,7 +229,7 @@ def test_colormaps():
             x = np.linspace(0, 20, 256)
             y = np.tile(0, 256)
             z = np.linspace(0, 1, 256)
-            ax.scatter(x, y, c=cmap(z), marker='s', s=20)
+            ax.scatter(x, y, c=cmap(z), marker='s', s=20, edgecolor='')
         ax.set_xbound(-1, 22)
         ax.set_ybound(-1, 22)
         ax.set_yticks(ticks)
@@ -226,14 +242,13 @@ def test_colormaps():
     lsp = np.linspace(0, 1, 256)
     gradient = np.vstack((lsp, lsp))
     names = ['colorblind_rainbow', 'colorblind_sequential',
-             'colorblind_diverging', None]
+             'colorblind_diverging', None, None]
     datas = [rainbow_colormap(lsp), sequential_colormap(lsp),
-             diverging_colormap(lsp), None]
+             diverging_colormap(lsp), None, None]
     for ix, (name, data) in enumerate(zip(names, datas)):
         if name is not None:
             register_cmap(cmap=ListedColormap(data, name=name))
-            ax = plt.subplot2grid(subplot_dims, (subplot_dims[0] - 2, ix),
-                                  fig=fig)
+            ax = plt.subplot2grid(subplot_dims, (subplot_dims[0] - 2, ix))
             ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(name))
             ax.set_title(name)
             ax.set_axis_off()
@@ -241,16 +256,14 @@ def test_colormaps():
             name = name + '_r'
             data = list(reversed(data))
             register_cmap(cmap=ListedColormap(data, name=name))
-            ax = plt.subplot2grid(subplot_dims, (subplot_dims[0] - 1, ix),
-                                  fig=fig)
+            ax = plt.subplot2grid(subplot_dims, (subplot_dims[0] - 1, ix))
             ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(name))
             ax.set_title(name)
             ax.set_axis_off()
         else:
             ax = plt.subplot2grid(subplot_dims, (subplot_dims[0] - 2, ix),
-                                  fig=fig, rowspan=2)
+                                  rowspan=2)
             ax.set_axis_off()
-
     # finish
     plt.tight_layout()
     plt.savefig('test_colormaps.pdf')
